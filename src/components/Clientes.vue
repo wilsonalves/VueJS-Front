@@ -10,7 +10,8 @@
       <div class="form-group col-md-6">
         <label for="nome">Nome</label>
         <input type="hidden" id="id" name="id" />
-        <input type="text" class="form-control" id="nome" name="nome" placeholder="Digite o nome: " />
+        <input type="text" class="form-control" v-model="cliente.nome" id="nome" name="nome" placeholder="Digite o nome: " />
+        <span> {{cliente.nome}}</span>
       </div>
 
       <div class="form-group col-md-6">
@@ -20,6 +21,7 @@
           class="form-control"
           id="telefone"
           name="telefone"
+          v-model="cliente.telefone"
           placeholder="Digite o telefone: "
         />
       </div>
@@ -32,6 +34,7 @@
           class="form-control"
           id="endereco"
           name="endereco"
+          v-model="cliente.endereco"
           placeholder="Digite o endereco: "
         />
       </div>
@@ -48,6 +51,7 @@
           <th>Nome</th>
           <th>Telefone</th>
           <th>Endereco</th>
+          <th colspan="2"></th>
         </tr>
       </thead>
       <tbody>
@@ -56,6 +60,12 @@
           <td>{{cliente.nome}}</td>
           <td>{{cliente.telefone}}</td>
           <td>{{cliente.endereco}}</td>
+          <td>
+            <button v-on:click="editar(cliente)" class="btn btn-primary">Editar</button>
+          </td>
+          <td>
+            <button v-on:click="excluir(cliente.id)" class="btn btn-danger">Excluir</button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -72,37 +82,62 @@ export default {
   data() {
     return {
       clientes: [],
-      mensagem:"",
-      nome:""
-    }
+      mensagem: "",
+      nome: "",
+      cliente: {nome:"", telefone:"", endereco:""}
+    };
   },
   methods: {
     lista() {
+       this.cliente = {nome:"", telefone:"", endereco:""}
       axios.get("https://localhost:44335/clientes").then(res => {
         console.log(res);
         this.clientes = res.data;
-      })
+      });
     },
-  
-  salvar(){
 
-    axios.post("https://localhost:44335/clientes",{
-      nome: document.getElementById('nome').value,
-      telefone: document.getElementById('endereco').value,
-      endereco:document.getElementById('telefone').value
-    }).then(()=>{
-      this.lista()
-    })
-   
+    salvar() {
 
-  }    
-  }, 
-  
+      if(this.clientes.id){
+        this.alterar()
+        return
+      }
+      axios
+        .post("https://localhost:44335/clientes", this.cliente)
+        
+        .then(() => {
+          this.lista();
+        });
+    },
+
+    excluir(id) {
+      if (confirm("Confirmar a exclusão ?" + id)) {
+        axios.delete("https://localhost:44335/clientes/" + id).then(() => {
+          this.lista();
+        });
+      }
+    },
+    editar(cliente) {
+      
+      this.cliente = cliente;
+    },
+    alterar() {
+     
+       axios.put(
+          "https://localhost:44335/clientes/" + this.cliente.id,
+          this.cliente
+        )
+        .then(() => {
+          this.lista();
+         
+        });
+    }
+  },
+
   created() {
     this.lista();
   }
-}
-
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
